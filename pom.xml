@@ -18,7 +18,7 @@
     <modules>
         <module>Shopping-common</module>
         <module>Shopping-mbg</module>
-        <!--<module>mall-demo</module>-->
+        <module>Shopping-config</module>
         <!--<module>mall-admin</module>-->
         <!--<module>mall-search</module>-->
         <!--<module>mall-portal</module>-->
