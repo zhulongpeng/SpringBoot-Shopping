@@ -16,8 +16,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <!--<module>mall-common</module>-->
-        <!--<module>mall-mbg</module>-->
+        <module>Shopping-common</module>
+        <module>Shopping-mbg</module>
         <!--<module>mall-demo</module>-->
         <!--<module>mall-admin</module>-->
         <!--<module>mall-search</module>-->
