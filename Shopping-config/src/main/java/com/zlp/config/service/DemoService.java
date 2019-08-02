@@ -1,5 +1,6 @@
 package com.zlp.config.service;
 
+import com.zlp.config.dto.PmsBrandDto;
 import com.zlp.mbg.model.PmsBrand;
 
 import java.util.List;
@@ -9,4 +10,6 @@ import java.util.List;
  */
 public interface DemoService {
     List<PmsBrand> listAllBrand();
+
+    int createBrand(PmsBrandDto pmsBrand);
 }
