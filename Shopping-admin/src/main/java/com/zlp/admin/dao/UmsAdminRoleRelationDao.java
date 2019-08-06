@@ -10,5 +10,5 @@ import java.util.List;
  */
 public interface UmsAdminRoleRelationDao {
 
-    List<UmsPermission> getPermissionList(@Param("admin") Long adminId);
+    List<UmsPermission> getPermissionList(@Param("adminId") Long adminId);
 }

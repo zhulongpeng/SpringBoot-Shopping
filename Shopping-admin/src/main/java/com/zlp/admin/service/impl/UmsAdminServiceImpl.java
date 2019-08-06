@@ -1,19 +1,34 @@
 package com.zlp.admin.service.impl;
 
 import com.zlp.admin.dao.UmsAdminRoleRelationDao;
+import com.zlp.admin.dto.UmsAdminLoginParam;
 import com.zlp.admin.dto.UmsAdminParam;
 import com.zlp.admin.service.UmsAdminService;
+import com.zlp.admin.util.JwtTokenUtil;
 import com.zlp.common.api.Constant;
 import com.zlp.common.util.XaUtil;
+import com.zlp.mbg.mapper.UmsAdminLoginLogMapper;
 import com.zlp.mbg.mapper.UmsAdminMapper;
 import com.zlp.mbg.model.UmsAdmin;
 import com.zlp.mbg.model.UmsAdminExample;
+import com.zlp.mbg.model.UmsAdminLoginLog;
 import com.zlp.mbg.model.UmsPermission;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
 
@@ -28,6 +43,17 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Autowired
     private UmsAdminRoleRelationDao adminRoleRelationDao;
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private UmsAdminLoginLogMapper loginLogMapper;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UmsAdminServiceImpl.class);
 
     @Override
     public UmsAdmin register(UmsAdminParam umsAdminParam) {
@@ -57,5 +83,43 @@ public class UmsAdminServiceImpl implements UmsAdminService {
     @Override
     public List<UmsPermission> getPermissionList(Long adminId) {
         return adminRoleRelationDao.getPermissionList(adminId);
+    }
+
+    @Override
+    public String login(UmsAdminLoginParam umsAdminLoginParam) {
+        String token = null;
+        try {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(umsAdminLoginParam.getUsername());
+            if(!passwordEncoder.matches(umsAdminLoginParam.getPassword(), userDetails.getPassword())){
+                throw new BadCredentialsException("密码不正确");
+            }
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            token = jwtTokenUtil.generateToken(userDetails);
+            updateLoginTimeByUsername(umsAdminLoginParam.getUsername());
+            insertLoginLog(umsAdminLoginParam.getUsername());
+        } catch (UsernameNotFoundException e) {
+            LOGGER.warn("登录异常:{}", e.getMessage());
+        }
+        return token;
+    }
+
+    private void insertLoginLog(String username) {
+        UmsAdmin adminByUsername = getAdminByUsername(username);
+        UmsAdminLoginLog loginLog = new UmsAdminLoginLog();
+        loginLog.setAdminId(adminByUsername.getId());
+        loginLog.setCreateTime(new Date());
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = attributes.getRequest();
+        loginLog.setIp(request.getRemoteAddr());
+        loginLogMapper.insert(loginLog);
+    }
+
+    private void updateLoginTimeByUsername(String username) {
+        UmsAdmin umsAdmin = new UmsAdmin();
+        umsAdmin.setLoginTime(new Date());
+        UmsAdminExample example = new UmsAdminExample();
+        example.createCriteria().andUsernameEqualTo(username);
+        adminMapper.updateByExampleSelective(umsAdmin, example);
     }
 }

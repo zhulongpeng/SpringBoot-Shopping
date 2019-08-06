@@ -1,5 +1,6 @@
 package com.zlp.admin.service;
 
+import com.zlp.admin.dto.UmsAdminLoginParam;
 import com.zlp.admin.dto.UmsAdminParam;
 import com.zlp.mbg.model.UmsAdmin;
 import com.zlp.mbg.model.UmsPermission;
@@ -13,4 +14,7 @@ public interface UmsAdminService {
     UmsAdmin getAdminByUsername(String username);
 
     List<UmsPermission> getPermissionList(Long id);
+
+    String login(UmsAdminLoginParam umsAdminLoginParam);
+
 }
