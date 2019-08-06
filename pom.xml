@@ -19,7 +19,7 @@
         <module>Shopping-common</module>
         <module>Shopping-mbg</module>
         <module>Shopping-config</module>
-        <!--<module>mall-admin</module>-->
+        <module>Shopping-admin</module>
         <!--<module>mall-search</module>-->
         <!--<module>mall-portal</module>-->
     </modules>
