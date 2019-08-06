@@ -12,4 +12,12 @@ public interface DemoService {
     List<PmsBrand> listAllBrand();
 
     int createBrand(PmsBrandDto pmsBrand);
+
+    int updateBrand(Long id, PmsBrandDto pmsBrandDto);
+
+    int deleteBrand(Long id);
+
+    List<PmsBrand> listBrand(Integer pageNum, Integer pageSize);
+
+    PmsBrand getBrand(Long id);
 }

@@ -1,5 +1,6 @@
 package com.zlp.config.service.impl;
 
+import com.github.pagehelper.PageHelper;
 import com.zlp.config.dto.PmsBrandDto;
 import com.zlp.config.service.DemoService;
 import com.zlp.mbg.mapper.PmsBrandMapper;
@@ -26,5 +27,29 @@ public class DemoServiceImpl implements DemoService {
         PmsBrand pmsBrand = new PmsBrand();
         BeanUtils.copyProperties(pmsBrandDto, pmsBrand);
         return brandMapper.insertSelective(pmsBrand);
+    }
+
+    @Override
+    public int updateBrand(Long id, PmsBrandDto pmsBrandDto) {
+        PmsBrand pmsBrand = new PmsBrand();
+        BeanUtils.copyProperties(pmsBrandDto, pmsBrand);
+        pmsBrand.setId(id);
+        return brandMapper.updateByPrimaryKeySelective(pmsBrand);
+    }
+
+    @Override
+    public int deleteBrand(Long id) {
+        return brandMapper.deleteByPrimaryKey(id);
+    }
+
+    @Override
+    public List<PmsBrand> listBrand(Integer pageNum, Integer pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        return brandMapper.selectByExample(new PmsBrandExample());
+    }
+
+    @Override
+    public PmsBrand getBrand(Long id) {
+        return brandMapper.selectByPrimaryKey(id);
     }
 }
