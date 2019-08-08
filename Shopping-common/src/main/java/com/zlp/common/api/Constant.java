@@ -37,4 +37,12 @@ public class Constant {
         public static final String object_not_find = "No Records Matched！";
     }
 
+    public static final class Separator{
+
+        public static final String DH = ",";
+
+        public static final String FH = ";";
+
+    }
+
 }

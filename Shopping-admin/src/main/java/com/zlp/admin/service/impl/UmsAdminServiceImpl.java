@@ -1,5 +1,6 @@
 package com.zlp.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
 import com.zlp.admin.dao.UmsAdminRoleRelationDao;
 import com.zlp.admin.dto.UmsAdminLoginParam;
 import com.zlp.admin.dto.UmsAdminParam;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,10 +27,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -52,6 +56,9 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Autowired
     private UmsAdminLoginLogMapper loginLogMapper;
+
+    @Value("${jwt.tokenHead}")
+    private String tokenHead;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UmsAdminServiceImpl.class);
 
@@ -102,6 +109,46 @@ public class UmsAdminServiceImpl implements UmsAdminService {
             LOGGER.warn("登录异常:{}", e.getMessage());
         }
         return token;
+    }
+
+    @Override
+    public String refreshToken(String oldToken) {
+        String token = oldToken.substring(tokenHead.length());
+        if(jwtTokenUtil.canRefresh(token)){
+            return jwtTokenUtil.refreshToken(token);
+        }
+        return null;
+    }
+
+    @Override
+    public List<UmsAdmin> userList(String name, Integer pageSize, Integer pageNum) {
+        PageHelper.startPage(pageNum, pageSize);
+        UmsAdminExample example = new UmsAdminExample();
+        UmsAdminExample.Criteria criteria = example.createCriteria();
+        if(!StringUtils.isEmpty(name)){
+            criteria.andUsernameLike("%" + name + "%");
+            example.or(example.createCriteria().andNickNameLike("%" + name + "%"));
+        }
+        return adminMapper.selectByExample(example);
+    }
+
+    @Override
+    public int update(Long id, UmsAdmin umsAdmin) {
+        umsAdmin.setId(id);
+        umsAdmin.setPassword(null);
+        return adminMapper.updateByPrimaryKeySelective(umsAdmin);
+    }
+
+    @Override
+    public UmsAdmin getAdminById(Long id) {
+        return adminMapper.selectByPrimaryKey(id);
+    }
+
+    @Override
+    public int updateRoles(Long adminId, String roleIds) {
+        List<String> roles = Arrays.asList(roleIds.split(Constant.Separator.FH));
+        int count = roleIds == null ? 0 : roles.size();
+        return 0;
     }
 
     private void insertLoginLog(String username) {
