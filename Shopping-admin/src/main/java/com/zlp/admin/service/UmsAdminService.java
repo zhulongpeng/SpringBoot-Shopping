@@ -4,6 +4,7 @@ import com.zlp.admin.dto.UmsAdminLoginParam;
 import com.zlp.admin.dto.UmsAdminParam;
 import com.zlp.mbg.model.UmsAdmin;
 import com.zlp.mbg.model.UmsPermission;
+import com.zlp.mbg.model.UmsRole;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -28,4 +29,12 @@ public interface UmsAdminService {
 
     @Transactional
     int updateRoles(Long adminId, String roleIds);
+
+    int delete(Long id);
+
+    List<UmsRole> getRoleList(Long adminId);
+
+    @Transactional
+    int updatePermission(Long adminId, List<Long> permissionIds);
+
 }

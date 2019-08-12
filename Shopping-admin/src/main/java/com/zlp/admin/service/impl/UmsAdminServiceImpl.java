@@ -1,6 +1,7 @@
 package com.zlp.admin.service.impl;
 
 import com.github.pagehelper.PageHelper;
+import com.zlp.admin.dao.AdminPermissionRelationDao;
 import com.zlp.admin.dao.UmsAdminRoleRelationDao;
 import com.zlp.admin.dto.UmsAdminLoginParam;
 import com.zlp.admin.dto.UmsAdminParam;
@@ -10,10 +11,8 @@ import com.zlp.common.api.Constant;
 import com.zlp.common.util.XaUtil;
 import com.zlp.mbg.mapper.UmsAdminLoginLogMapper;
 import com.zlp.mbg.mapper.UmsAdminMapper;
-import com.zlp.mbg.model.UmsAdmin;
-import com.zlp.mbg.model.UmsAdminExample;
-import com.zlp.mbg.model.UmsAdminLoginLog;
-import com.zlp.mbg.model.UmsPermission;
+import com.zlp.mbg.mapper.UmsAdminPermissionRelationMapper;
+import com.zlp.mbg.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -32,9 +31,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UmsAdminServiceImpl implements UmsAdminService {
@@ -56,6 +54,12 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Autowired
     private UmsAdminLoginLogMapper loginLogMapper;
+
+    @Autowired
+    private UmsAdminPermissionRelationMapper adminPermissionRelationMapper;
+
+    @Autowired
+    private AdminPermissionRelationDao adminPermissionRelationDao;
 
     @Value("${jwt.tokenHead}")
     private String tokenHead;
@@ -146,9 +150,55 @@ public class UmsAdminServiceImpl implements UmsAdminService {
 
     @Override
     public int updateRoles(Long adminId, String roleIds) {
-        List<String> roles = Arrays.asList(roleIds.split(Constant.Separator.FH));
+        List<Long> roles = Arrays.stream(roleIds.split(Constant.Separator.FH)).map(id -> Long.parseLong(id.trim())).collect(Collectors.toList());
         int count = roleIds == null ? 0 : roles.size();
+        //先删除原来的
+
         return 0;
+    }
+
+    @Override
+    public int delete(Long id) {
+        return adminMapper.deleteByPrimaryKey(id);
+    }
+
+    @Override
+    public List<UmsRole> getRoleList(Long adminId) {
+        return adminRoleRelationDao.getRoleList(adminId);
+    }
+
+    @Override
+    public int updatePermission(Long adminId, List<Long> permissionIds) {
+        //删除原所有权限关系
+        UmsAdminPermissionRelationExample relationExample = new UmsAdminPermissionRelationExample();
+        relationExample.createCriteria().andAdminIdEqualTo(adminId);
+        adminPermissionRelationMapper.deleteByExample(relationExample);
+        //获取用户所有角色权限
+        List<UmsPermission> permissionList = adminRoleRelationDao.getPermissionList(adminId);
+        List<Long> rolePermissionList = permissionList.stream().map(UmsPermission::getId).collect(Collectors.toList());
+        if(XaUtil.isNotEmpty(permissionIds)) {
+            List<UmsAdminPermissionRelation> relationList = new ArrayList<>();
+            //筛选出+权限
+            List<Long> addPermissionIdList = permissionIds.stream().filter(permissionId -> !permissionList.contains(permissionId)).collect(Collectors.toList());
+            //筛选出-权限
+            List<Long> subPermissionIdList = rolePermissionList.stream().filter(permissionId -> !permissionIds.contains(permissionId)).collect(Collectors.toList());
+            //插入+-权限关系
+            relationList.addAll(convert(adminId, 1, addPermissionIdList));
+            relationList.addAll(convert(adminId, -1, subPermissionIdList));
+            return adminPermissionRelationDao.insertList(relationList);
+        }
+        return 0;
+    }
+
+    private List<UmsAdminPermissionRelation> convert(Long adminId, Integer type, List<Long> permissionIdList) {
+        List<UmsAdminPermissionRelation> collect = permissionIdList.stream().map(permissionId -> {
+            UmsAdminPermissionRelation relation = new UmsAdminPermissionRelation();
+            relation.setAdminId(adminId);
+            relation.setType(type);
+            relation.setPermissionId(permissionId);
+            return relation;
+        }).collect(Collectors.toList());
+        return collect;
     }
 
     private void insertLoginLog(String username) {

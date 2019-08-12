@@ -7,6 +7,8 @@ import com.zlp.common.api.CommonPage;
 import com.zlp.common.api.CommonResult;
 import com.zlp.common.util.XaUtil;
 import com.zlp.mbg.model.UmsAdmin;
+import com.zlp.mbg.model.UmsPermission;
+import com.zlp.mbg.model.UmsRole;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -206,5 +208,82 @@ public class UmsAdminController {
         }
         return commonResult;
     }
+
+
+    @ApiOperation(value = "删除指定用户信息")
+    @PostMapping(value = "/delete/{id}")
+    @ResponseBody
+    public CommonResult delete(
+            @PathVariable Long id
+    ){
+        CommonResult commonResult = null;
+        try {
+            int count =  adminService.delete(id);
+            if(count > 0){
+                commonResult = CommonResult.success(count);
+            }else{
+                commonResult = CommonResult.failed();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            commonResult = CommonResult.failed(e.getMessage());
+        }
+        return commonResult;
+    }
+
+    @ApiOperation(value = "获取指定用户的角色")
+    @GetMapping(value = "/role/{adminId}")
+    @ResponseBody
+    public CommonResult<List<UmsRole>> getRoleList(
+            @PathVariable Long adminId
+    ){
+        CommonResult commonResult = null;
+        try {
+            List<UmsRole> roleList = adminService.getRoleList(adminId);
+            commonResult = CommonResult.success(roleList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            commonResult = CommonResult.failed(e.getMessage());
+        }
+        return commonResult;
+    }
+
+    @ApiOperation("给用户分配增减权限")
+    @PostMapping(value = "/permission/update")
+    @ResponseBody
+    public CommonResult updatePermission(
+            @RequestParam Long adminId,
+            @RequestParam("permissionIds") List<Long> permissionIds
+    ){
+        CommonResult commonResult = null;
+        try {
+            int count = adminService.updatePermission(adminId, permissionIds);
+            if(count > 0){
+                commonResult = CommonResult.success(count);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            commonResult = CommonResult.failed(e.getMessage());
+        }
+        return commonResult;
+    }
+
+    @ApiOperation(value = "获取用户所有权限包括+-权限")
+    @GetMapping
+    @ResponseBody
+    public CommonResult<List<UmsPermission>> getUmsPermissionList(
+            @PathVariable Long adminId
+    ){
+        CommonResult commonResult = null;
+        try {
+            List<UmsPermission> permissionList = adminService.getPermissionList(adminId);
+            commonResult = CommonResult.success(permissionList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            commonResult = CommonResult.failed(e.getMessage());
+        }
+        return commonResult;
+    }
+
 
 }
