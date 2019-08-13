@@ -1,6 +1,5 @@
 package com.zlp.admin.controller;
 
-import com.alibaba.druid.sql.dialect.postgresql.ast.stmt.PGValuesQuery;
 import com.zlp.admin.service.UmsRoleService;
 import com.zlp.common.api.CommonResult;
 import com.zlp.mbg.model.UmsRole;
@@ -8,7 +7,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
