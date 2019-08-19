@@ -1,16 +1,21 @@
 package com.zlp.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
 import com.zlp.admin.dto.PmsBrandParam;
 import com.zlp.admin.service.PmsBrandService;
+import com.zlp.common.util.XaUtil;
 import com.zlp.mbg.mapper.PmsBrandMapper;
 import com.zlp.mbg.mapper.PmsProductMapper;
 import com.zlp.mbg.model.PmsBrand;
+import com.zlp.mbg.model.PmsBrandExample;
 import com.zlp.mbg.model.PmsProduct;
 import com.zlp.mbg.model.PmsProductExample;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 @Service
 public class PmsBrandServiceImpl implements PmsBrandService {
@@ -48,5 +53,34 @@ public class PmsBrandServiceImpl implements PmsBrandService {
         example.createCriteria().andBrandIdEqualTo(id);
         productMapper.updateByExampleSelective(product, example);
         return pmsBrandMapper.updateByPrimaryKeySelective(pmsBrand);
+    }
+
+    @Override
+    public int deleteBrand(Long id) {
+        return pmsBrandMapper.deleteByPrimaryKey(id);
+    }
+
+    @Override
+    public List<PmsBrand> listAllBrand() {
+        return pmsBrandMapper.selectByExample(new PmsBrandExample());
+    }
+
+    @Override
+    public List<PmsBrand> listBrand(String keyword, Integer pageNum, Integer pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        PmsBrandExample pmsBrandExample = new PmsBrandExample();
+        pmsBrandExample.setOrderByClause(" sort desc ");
+        PmsBrandExample.Criteria criteria = pmsBrandExample.createCriteria();
+        if(XaUtil.isNotEmpty(keyword)){
+            criteria.andNameLike("%" + keyword + "%");
+        }
+        return pmsBrandMapper.selectByExample(pmsBrandExample);
+    }
+
+    @Override
+    public int deleteBrands(List<Long> ids) {
+        PmsBrandExample pmsBrandExample = new PmsBrandExample();
+        pmsBrandExample.createCriteria().andIdIn(ids);
+        return pmsBrandMapper.deleteByExample(pmsBrandExample);
     }
 }
