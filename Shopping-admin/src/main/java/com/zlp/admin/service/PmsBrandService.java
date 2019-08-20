@@ -20,4 +20,8 @@ public interface PmsBrandService {
     List<PmsBrand> listBrand(String keyword, Integer pageNum, Integer pageSize);
 
     int deleteBrands(List<Long> ids);
+
+    int updateStatus(List<Long> ids, Integer showStatus);
+
+    int updateFactoryStatus(List<Long> ids, Integer factoryStatus);
 }

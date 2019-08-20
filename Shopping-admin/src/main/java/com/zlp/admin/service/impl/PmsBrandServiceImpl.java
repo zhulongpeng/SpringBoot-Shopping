@@ -83,4 +83,22 @@ public class PmsBrandServiceImpl implements PmsBrandService {
         pmsBrandExample.createCriteria().andIdIn(ids);
         return pmsBrandMapper.deleteByExample(pmsBrandExample);
     }
+
+    @Override
+    public int updateStatus(List<Long> ids, Integer showStatus) {
+        PmsBrand pmsBrand = new PmsBrand();
+        pmsBrand.setShowStatus(showStatus);
+        PmsBrandExample pmsBrandExample = new PmsBrandExample();
+        pmsBrandExample.createCriteria().andIdIn(ids);
+        return pmsBrandMapper.updateByExampleSelective(pmsBrand,pmsBrandExample);
+    }
+
+    @Override
+    public int updateFactoryStatus(List<Long> ids, Integer factoryStatus) {
+        PmsBrand pmsBrand = new PmsBrand();
+        pmsBrand.setFactoryStatus(factoryStatus);
+        PmsBrandExample pmsBrandExample = new PmsBrandExample();
+        pmsBrandExample.createCriteria().andIdIn(ids);
+        return pmsBrandMapper.updateByExampleSelective(pmsBrand, pmsBrandExample);
+    }
 }
